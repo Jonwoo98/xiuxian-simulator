@@ -227,7 +227,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
   const [highlightedCells, setHighlightedCells] = useState<Set<string>>(new Set());
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const gridSize = config.gridSize || 30;
+  const gridSize = typeof config.gridSize === 'object' ? Math.min(config.gridSize.width, config.gridSize.height) : (config.gridSize || 30);
   const cellSize = Math.floor(Math.min(600 / gridSize, 20));
 
   // 初始化网格
@@ -239,6 +239,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
         newGrid[x][y] = {
           x,
           y,
+          alive: false,
           isAlive: false,
           age: 0,
           neighbors: 0
@@ -286,6 +287,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
           if (cell.isAlive) {
             // 存活细胞规则
             if (neighbors < 2 || neighbors > 3) {
+              cell.alive = false;
               cell.isAlive = false;
               cell.age = 0;
             } else {
@@ -294,6 +296,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
           } else {
             // 死细胞规则
             if (neighbors === 3) {
+              cell.alive = true;
               cell.isAlive = true;
               cell.age = 1;
             }
@@ -311,6 +314,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
   const handleCellClick = useCallback((x: number, y: number) => {
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => row.map(cell => ({ ...cell })));
+      newGrid[x][y].alive = !newGrid[x][y].alive;
       newGrid[x][y].isAlive = !newGrid[x][y].isAlive;
       newGrid[x][y].age = newGrid[x][y].isAlive ? 1 : 0;
       return newGrid;
@@ -323,7 +327,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
   // 应用预设
   const applyPreset = useCallback((preset: LifeGamePreset) => {
     setGrid(prevGrid => {
-      const newGrid = prevGrid.map(row => row.map(cell => ({ ...cell, isAlive: false, age: 0 })));
+      const newGrid = prevGrid.map(row => row.map(cell => ({ ...cell, alive: false, isAlive: false, age: 0 })));
       
       const centerX = Math.floor(gridSize / 2);
       const centerY = Math.floor(gridSize / 2);
@@ -332,6 +336,7 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
         const x = centerX + dx;
         const y = centerY + dy;
         if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+          newGrid[x][y].alive = true;
           newGrid[x][y].isAlive = true;
           newGrid[x][y].age = 1;
         }
@@ -493,7 +498,11 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
             
             {/* 预设选择器 */}
             <PresetSelector
-              presets={config.presets || []}
+              presets={config.presets ? Object.entries(config.presets).map(([name, pattern]) => ({
+                name,
+                pattern,
+                description: `${name}形态`
+              })) : []}
               onSelectPreset={applyPreset}
               currentPreset={currentPreset}
             />

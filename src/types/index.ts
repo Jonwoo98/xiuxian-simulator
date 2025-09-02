@@ -14,6 +14,11 @@ export interface AcupointNode {
   id: string;
   name: string;
   position: [number, number, number]; // x, y, z 坐标
+  x: number;
+  y: number;
+  z: number;
+  size: number;
+  type: string;
   isActive: boolean;
   isCompleted: boolean;
 }
@@ -23,6 +28,10 @@ export interface AcupointNode2D {
   id: string;
   name: string;
   position: [number, number]; // x, y 坐标
+  x: number;
+  y: number;
+  size: number;
+  type: string;
   isActive: boolean;
   isCompleted: boolean;
 }
@@ -48,6 +57,10 @@ export interface RealmState {
   isAnimating: boolean;
   currentStep: number;
   totalSteps: number;
+  animationProgress: number;
+  progress: number;
+  activeNodes: string[];
+  completedPaths: string[];
   nodes: AcupointNode[];
   paths: MeridianPath[];
 }
@@ -75,6 +88,11 @@ export interface RealmConfig {
   description: string;
   complexityLevel: number;
   visualizationType: '2d' | '3d' | 'grid';
+  nodes?: AcupointNode2D[] | AcupointNode[];
+  nodes3D?: AcupointNode[];
+  gridSize?: { width: number; height: number };
+  presets?: { [key: string]: [number, number][] };
+  philosophyTexts?: string[];
 }
 
 // 练气期配置
@@ -129,6 +147,7 @@ export interface RealmInfo {
   id: RealmType;
   name: string;
   description: string;
+  shortDescription: string;
   instructions: {
     manual: string;
     auto: string;
@@ -187,4 +206,62 @@ export interface ErrorState {
 export interface LoadingState {
   isLoading: boolean;
   message: string;
+}
+
+// 几何体类型
+export type GeometryType = 'klein_bottle' | 'tesseract' | 'sphere' | 'torus' | 'cube' | 'octahedron' | 'icosahedron' | 'dodecahedron';
+
+// 生命游戏单元格
+export interface LifeGameCell {
+  x: number;
+  y: number;
+  alive: boolean;
+  isAlive: boolean;
+  age: number;
+  neighbors?: number;
+}
+
+// 生命游戏预设
+export interface LifeGamePreset {
+  name: string;
+  pattern: [number, number][];
+  description: string;
+}
+
+export type LifeGamePresets = {
+  [key: string]: [number, number][];
+}
+
+// 组件Props类型定义
+export interface LianQiSceneProps {
+  isAnimating: boolean;
+  currentStep: number;
+  animationProgress: number;
+  onNodeClick?: (nodeId: string) => void;
+}
+
+export interface ZhuJiSceneProps {
+  isAnimating: boolean;
+  currentStep: number;
+  animationProgress: number;
+  onNodeClick?: (nodeId: string) => void;
+}
+
+export interface JinDanSceneProps {
+  isAnimating: boolean;
+  currentStep: number;
+  animationProgress: number;
+  onNodeClick?: (nodeId: string) => void;
+}
+
+export interface YuanYingSceneProps {
+  isAnimating: boolean;
+  onCellClick?: (x: number, y: number) => void;
+}
+
+export interface HuaShenSceneProps {
+  isAnimating: boolean;
+  animationProgress: number;
+  geometryType: GeometryType;
+  onGeometryClick?: (geometryId: string) => void;
 }

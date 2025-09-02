@@ -22,6 +22,10 @@ const initialRealmState: RealmState = {
   isAnimating: false,
   currentStep: 0,
   totalSteps: 0,
+  animationProgress: 0,
+  progress: 0,
+  activeNodes: [],
+  completedPaths: [],
   nodes: [],
   paths: []
 };
@@ -262,7 +266,17 @@ export const useInteractionMode = () => useAppStore(state => state.realmState.mo
 /**
  * 选择器函数 - 获取动画状态
  */
-export const useAnimationState = () => useAppStore(state => state.realmState.isAnimating);
+export const useAnimationState = () => {
+  const isAnimating = useAppStore(state => state.realmState.isAnimating);
+  const currentStep = useAppStore(state => state.realmState.currentStep);
+  const animationProgress = useAppStore(state => state.realmState.animationProgress);
+  
+  return {
+    isAnimating,
+    currentStep,
+    animationProgress
+  };
+};
 
 /**
  * 选择器函数 - 获取当前步骤
@@ -296,4 +310,4 @@ export const useAnimationProgress = () => useAppStore(state => {
   const activePaths = state.realmState.paths.filter(path => path.isActive);
   if (activePaths.length === 0) return 0;
   return activePaths.reduce((sum, path) => sum + path.progress, 0) / activePaths.length;
-}, (a, b) => a === b);
+});

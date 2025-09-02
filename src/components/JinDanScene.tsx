@@ -138,7 +138,7 @@ const Connection3D: React.FC<Connection3DProps> = ({
   isActive, 
   animationProgress 
 }) => {
-  const lineRef = useRef<THREE.BufferGeometry>(null);
+  const lineRef = useRef<THREE.Group>(null);
   
   // 创建连接线的点
   const points = useMemo(() => {
@@ -156,28 +156,21 @@ const Connection3D: React.FC<Connection3DProps> = ({
   // 动画效果
   useFrame(() => {
     if (lineRef.current && isActive) {
-      const positions = lineRef.current.attributes.position;
-      if (positions) {
-        // 创建流动效果
-        const time = Date.now() * 0.005;
-        for (let i = 0; i < positions.count; i++) {
-          const wave = Math.sin(i * 0.3 + time) * 0.1;
-          positions.setY(i, points[i].y + wave);
-        }
-        positions.needsUpdate = true;
-      }
+      // 简单的旋转动画效果
+      lineRef.current.rotation.z += 0.01;
     }
   });
 
   return (
-    <Line
-      ref={lineRef}
-      points={points}
-      color={isActive ? '#FFD700' : '#4A90E2'}
-      lineWidth={isActive ? 3 : 1}
-      transparent
-      opacity={isActive ? 0.8 : 0.4}
-    />
+    <group ref={lineRef}>
+      <Line
+        points={points}
+        color={isActive ? '#FFD700' : '#4A90E2'}
+        lineWidth={isActive ? 3 : 1}
+        transparent
+        opacity={isActive ? 0.8 : 0.4}
+      />
+    </group>
   );
 };
 

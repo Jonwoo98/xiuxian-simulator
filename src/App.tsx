@@ -136,19 +136,43 @@ interface SceneRendererProps {
 
 const SceneRenderer: React.FC<SceneRendererProps> = ({ realm }) => {
   const { activateNode } = useAppStore();
+  const { isAnimating, currentStep, animationProgress } = useAnimationState();
 
   const renderScene = () => {
     switch (realm) {
       case 'lianqi':
-        return <LianQiScene onNodeClick={activateNode} />;
+        return <LianQiScene 
+          isAnimating={isAnimating}
+          currentStep={currentStep}
+          animationProgress={animationProgress}
+          onNodeClick={activateNode} 
+        />;
       case 'zhuji':
-        return <ZhuJiScene onNodeClick={activateNode} />;
+        return <ZhuJiScene 
+          isAnimating={isAnimating}
+          currentStep={currentStep}
+          animationProgress={animationProgress}
+          onNodeClick={activateNode} 
+        />;
       case 'jindan':
-        return <JinDanScene onNodeClick={activateNode} />;
+        return <JinDanScene 
+          isAnimating={isAnimating}
+          currentStep={currentStep}
+          animationProgress={animationProgress}
+          onNodeClick={activateNode} 
+        />;
       case 'yuanying':
-        return <YuanYingScene onNodeClick={activateNode} />;
+        return <YuanYingScene 
+          isAnimating={isAnimating}
+          onCellClick={(x, y) => activateNode(`${x}-${y}`)} 
+        />;
       case 'huashen':
-        return <HuaShenScene onNodeClick={activateNode} />;
+        return <HuaShenScene 
+          isAnimating={isAnimating}
+          animationProgress={animationProgress}
+          geometryType="klein_bottle"
+          onGeometryClick={activateNode} 
+        />;
       default:
         return null;
     }
@@ -202,7 +226,7 @@ function App() {
   
   const currentRealm = useCurrentRealm();
   const mode = useInteractionMode();
-  const isAnimating = useAnimationState();
+  const { isAnimating } = useAnimationState();
 
   // 初始化应用
   useEffect(() => {
