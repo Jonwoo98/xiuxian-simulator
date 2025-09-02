@@ -176,7 +176,7 @@ pnpm preview
 
 ## 🌐 在线演示
 
-🚀 [在线体验地址](https://your-demo-url.vercel.app)
+🚀 [在线体验地址](https://traexiuxian2psv3-cuizhengwu-cuizhengwus-projects.vercel.app)
 
 ## 📸 项目截图
 
