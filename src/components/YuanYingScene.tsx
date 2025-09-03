@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useAppStore, useCurrentRealmState, useAnimationState } from '../store/useAppStore';
-import { getRealmConfig } from '../data/realmConfigs';
+import { yuanyingConfig } from '../data/realmConfigs';
 import type { YuanYingSceneProps, LifeGameCell, LifeGamePreset } from '../types';
 
 /**
@@ -184,6 +184,13 @@ interface PresetSelectorProps {
 }
 
 const PresetSelector: React.FC<PresetSelectorProps> = ({ presets, onSelectPreset, currentPreset }) => {
+  const presetDisplayMeta: Record<string, { label: string; desc: string }> = {
+    glider: { label: '灵羽游光', desc: '循律而行，化羽穿阵，灵光自迁' },
+    block: { label: '四象镇印', desc: '稳如金印，四象同枢，不动如山' },
+    blinker: { label: '明灭灵灯', desc: '若呼吸之息，法灯明暗，阴阳相续' },
+    toad: { label: '吞月蟾阵', desc: '吞吐月华，鼓荡生机，潮汐化形' },
+    beacon: { label: '引灵烽灯', desc: '一灯为牵，引渡灵机，照见归途' },
+  };
   return (
     <div className="bg-black/70 backdrop-blur-sm text-white p-4 rounded-lg border border-purple-500/40">
       <h4 className="text-sm font-semibold mb-3 text-purple-300">元婴形态预设</h4>
@@ -197,9 +204,9 @@ const PresetSelector: React.FC<PresetSelectorProps> = ({ presets, onSelectPreset
                 ? 'bg-purple-600 border-purple-400 text-white'
                 : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
             }`}
-            title={preset.description}
+            title={presetDisplayMeta[preset.name]?.desc ?? preset.description}
           >
-            {preset.name}
+            {presetDisplayMeta[preset.name]?.label ?? preset.name}
           </button>
         ))}
       </div>
@@ -215,8 +222,8 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
   const { isAnimating } = useAnimationState();
   const { activateNode } = useAppStore();
   
-  // 获取元婴期配置
-  const config = getRealmConfig('yuanying');
+  // 获取元婴期配置（包含 presets 和 gridSize）
+  const config = yuanyingConfig;
   
   // 生命游戏状态
   const [grid, setGrid] = useState<LifeGameCell[][]>([]);
@@ -372,8 +379,42 @@ const YuanYingScene: React.FC<YuanYingSceneProps> = ({ onCellClick }) => {
     if (isAnimating) {
       setIsRunning(true);
       setSpeed(200);
+
+      // 若当前没有任何存活细胞，自动播种一个预设，确保有可见的演化
+      const hasAlive = grid.some(row => row.some(cell => cell.isAlive));
+      if (!hasAlive) {
+        const presetEntries = config.presets ? Object.entries(config.presets) : [];
+        // 优先选择 glider，没有则选择第一个预设
+        const gliderEntry = presetEntries.find(([name]) => name === 'glider');
+        const chosen = gliderEntry ?? presetEntries[0];
+        if (chosen) {
+          const [name, pattern] = chosen;
+          applyPreset({ name, pattern, description: `${name}形态` });
+        } else {
+          // 如果没有预设，进行少量随机播种
+          setGrid(prev => {
+            const newGrid = prev.map(row => row.map(cell => ({ ...cell })));
+            const seeds = Math.max(5, Math.floor((gridSize * gridSize) * 0.03));
+            for (let i = 0; i < seeds; i++) {
+              const x = Math.floor(Math.random() * gridSize);
+              const y = Math.floor(Math.random() * gridSize);
+              newGrid[x][y].alive = true;
+              newGrid[x][y].isAlive = true;
+              newGrid[x][y].age = 1;
+            }
+            return newGrid;
+          });
+        }
+      }
+    } else {
+      // 手动停止时停下演化
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setIsRunning(false);
     }
-  }, [isAnimating]);
+  }, [isAnimating, grid, config.presets, gridSize, applyPreset]);
 
   // 初始化
   useEffect(() => {

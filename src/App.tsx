@@ -5,8 +5,7 @@
 
 import React, { useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { useAppStore, useCurrentRealm, useInteractionMode, useAnimationState, useCurrentStep, useTotalSteps } from './store/useAppStore';
+import { useAppStore, useCurrentRealm, useInteractionMode, useAnimationState, useRealmState, useCurrentStep, useTotalSteps } from './store/useAppStore';
 import { getRealmInfo } from './data/realmConfigs';
 import type { RealmType, InteractionMode } from './types';
 
@@ -17,6 +16,7 @@ const ZhuJiScene = React.lazy(() => import('./components/ZhuJiScene'));
 const JinDanScene = React.lazy(() => import('./components/JinDanScene'));
 const YuanYingScene = React.lazy(() => import('./components/YuanYingScene'));
 const HuaShenScene = React.lazy(() => import('./components/HuaShenScene'));
+const ErrorBoundary = React.lazy(() => import('./components/ErrorBoundary'));
 
 /**
  * 控制面板组件
@@ -164,7 +164,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ realm }) => {
       case 'yuanying':
         return <YuanYingScene 
           isAnimating={isAnimating}
-          onCellClick={(x, y) => activateNode(`${x}-${y}`)} 
+          onCellClick={(x, y) => activateNode(`cell_${x}_${y}`)} 
         />;
       case 'huashen':
         return <HuaShenScene 
@@ -178,22 +178,47 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ realm }) => {
     }
   };
 
-  // 3D场景需要Canvas包装
-  if (realm === 'jindan' || realm === 'huashen') {
+  // 3D场景需要Canvas包装（但HuaShenScene已经有自己的Canvas）
+  if (realm === 'jindan') {
     return (
       <div className="w-full h-full">
-        <Canvas
-          camera={{ position: [10, 10, 10], fov: 60 }}
-          className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900"
-        >
-          <ambientLight intensity={0.4} />
-          <pointLight position={[10, 10, 10]} intensity={1} />
-          <pointLight position={[-10, -10, -10]} intensity={0.5} color="#4f46e5" />
-          <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
-          <Suspense fallback={null}>
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-full">
+            <div className="text-white text-lg">加载中...</div>
+          </div>
+        }>
+          <ErrorBoundary>
+            <Canvas
+              camera={{ position: [10, 10, 10], fov: 60 }}
+              className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900"
+              gl={{ antialias: true, alpha: false, preserveDrawingBuffer: false }}
+              dpr={[1, 2]}
+              performance={{ min: 0.5 }}
+              frameloop="always"
+            >
+              <Suspense fallback={null}>
+                {renderScene()}
+              </Suspense>
+            </Canvas>
+          </ErrorBoundary>
+        </Suspense>
+      </div>
+    );
+  }
+  
+  // HuaShenScene有自己的Canvas，不需要额外包装
+  if (realm === 'huashen') {
+    return (
+      <div className="w-full h-full">
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-full">
+            <div className="text-white text-lg">加载中...</div>
+          </div>
+        }>
+          <ErrorBoundary>
             {renderScene()}
-          </Suspense>
-        </Canvas>
+          </ErrorBoundary>
+        </Suspense>
       </div>
     );
   }
@@ -227,6 +252,9 @@ function App() {
   const currentRealm = useCurrentRealm();
   const mode = useInteractionMode();
   const { isAnimating } = useAnimationState();
+  const realmState = useRealmState();
+  const currentStep = useCurrentStep();
+  const totalSteps = useTotalSteps();
 
   // 初始化应用
   useEffect(() => {
@@ -235,6 +263,7 @@ function App() {
 
   const handleRealmChange = (realm: RealmType) => {
     setCurrentRealm(realm);
+    initializeRealm(realm);
   };
 
   const handleModeChange = (newMode: InteractionMode) => {
@@ -252,21 +281,21 @@ function App() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* 标题栏 */}
-      <header className="bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 p-4 shadow-lg">
+      <header className="bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900 p-4 shadow-lg border-b border-gray-700">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 bg-clip-text text-transparent">
-            修真模拟器：心智进化
-          </h1>
-          <p className="text-center text-gray-300 mt-2 text-sm">
-            体验修真境界的经络运行复杂度，感受心智进化的奥妙
-          </p>
+          <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              修真模拟器：心智进化
+            </h1>
+            <p className="text-center text-gray-300 mt-2 text-sm">
+              体验修真境界的经络运行复杂度，感受心智进化的奥妙
+            </p>
         </div>
       </header>
 
       {/* 主要内容区域 */}
-      <div className="flex h-[calc(100vh-120px)]">
-        {/* 左侧导航栏 */}
-        <div className="w-64 bg-gray-900/50 backdrop-blur-sm border-r border-gray-700 p-4">
+      <div className="flex h-[calc(100vh-160px)]">
+        {/* 左侧导航栏 - 增加宽度以更好展示境界选择 */}
+        <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-r border-gray-700 p-4 overflow-y-auto scrollbar-hide">
           <Suspense fallback={
             <div className="text-center text-gray-400">加载导航...</div>
           }>
@@ -290,8 +319,8 @@ function App() {
           </div>
         </div>
 
-        {/* 右侧控制面板 */}
-        <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-l border-gray-700 p-4">
+        {/* 右侧控制面板 - 减少宽度以平衡布局 */}
+        <div className="w-80 bg-gray-900/50 backdrop-blur-sm border-l border-gray-700 p-4 overflow-y-auto scrollbar-hide">
           <ControlPanel
             currentRealm={currentRealm}
             mode={mode}
@@ -300,6 +329,98 @@ function App() {
             onAutoPlay={handleAutoPlay}
             onReset={handleReset}
           />
+          
+          {/* 境界感悟 */}
+          <div className="mt-4 bg-gradient-to-r from-indigo-900 to-purple-900 rounded-lg p-3 border border-indigo-600">
+            <h4 className="text-white font-semibold mb-2 text-center text-sm">境界感悟</h4>
+            <p className="text-xs text-indigo-100 text-center leading-relaxed">
+              {currentRealm === 'lianqi' && '练气如种子萌芽，感知天地灵气，开启修真之门。'}
+              {currentRealm === 'zhuji' && '筑基如建高楼，稳固根基，经络贯通成环。'}
+              {currentRealm === 'jindan' && '金丹如明珠，凝聚精气神，三维网络立体运行。'}
+              {currentRealm === 'yuanying' && '元婴如新生，生命演化，复杂系统自组织。'}
+              {currentRealm === 'huashen' && '化神如蝶变，超越形体，高维空间自由遨游。'}
+            </p>
+          </div>
+          
+          {/* 修真要诀 */}
+          <div className="mt-3 bg-gray-800 rounded-lg p-3 border border-gray-600">
+            <h4 className="text-white font-semibold mb-2 text-center text-sm">修真要诀</h4>
+            <ul className="space-y-1">
+              {currentRealm === 'lianqi' && [
+                '静心凝神，感知灵气',
+                '调息吐纳，循环往复',
+                '经络疏通，气血调和'
+              ].map((tip, index) => (
+                <li key={index} className="text-xs text-gray-300 flex items-center">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                  {tip}
+                </li>
+              ))}
+              {currentRealm === 'zhuji' && [
+                '筑基炼体，强化根基',
+                '内视观想，凝聚真元',
+                '周天运转，贯通经脉'
+              ].map((tip, index) => (
+                <li key={index} className="text-xs text-gray-300 flex items-center">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                  {tip}
+                </li>
+              ))}
+              {currentRealm === 'jindan' && [
+                '三花聚顶，五气朝元',
+                '金丹凝结，神识外放',
+                '天人合一，道法自然'
+              ].map((tip, index) => (
+                <li key={index} className="text-xs text-gray-300 flex items-center">
+                  <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-2"></span>
+                  {tip}
+                </li>
+              ))}
+              {currentRealm === 'yuanying' && [
+                '元婴出窍，神游太虚',
+                '法则感悟，天地共鸣',
+                '生死轮回，超脱束缚'
+              ].map((tip, index) => (
+                <li key={index} className="text-xs text-gray-300 flex items-center">
+                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-2"></span>
+                  {tip}
+                </li>
+              ))}
+              {currentRealm === 'huashen' && [
+                '化神通玄，万法归一',
+                '空间折叠，时间静止',
+                '创世灭世，掌控乾坤'
+              ].map((tip, index) => (
+                <li key={index} className="text-xs text-gray-300 flex items-center">
+                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          {/* 修真统计 */}
+          <div className="mt-3 bg-gray-800 rounded-lg p-3 border border-gray-600">
+            <h4 className="text-white font-semibold mb-2 text-center text-sm">修真统计</h4>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">当前境界:</span>
+                <span className="text-xs text-white font-medium">{getRealmInfo(currentRealm).name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">修炼进度:</span>
+                <span className="text-xs text-green-400">{Math.round(realmState.progress)}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">激活节点:</span>
+                <span className="text-xs text-blue-400">{realmState.activeNodes.length}/{totalSteps}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">当前步骤:</span>
+                <span className="text-xs text-purple-400">{currentStep}/{totalSteps}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

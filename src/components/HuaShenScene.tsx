@@ -6,7 +6,6 @@
 
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, Sphere, Box, Octahedron, Icosahedron, Dodecahedron } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore, useCurrentRealmState, useAnimationState } from '../store/useAppStore';
 import { getRealmConfig } from '../data/realmConfigs';
@@ -83,39 +82,45 @@ const HighDimensionalGeometry: React.FC<HighDimensionalGeometryProps> = ({
     switch (geometryType) {
       case 'sphere':
         return (
-          <Sphere args={[size, 32, 32]}>
+          <>
+            <sphereGeometry args={[size, 32, 32]} />
             {getMaterial()}
-          </Sphere>
+          </>
         );
       case 'cube':
         return (
-          <Box args={[size, size, size]}>
+          <>
+            <boxGeometry args={[size, size, size]} />
             {getMaterial()}
-          </Box>
+          </>
         );
       case 'octahedron':
         return (
-          <Octahedron args={[size]}>
+          <>
+            <octahedronGeometry args={[size]} />
             {getMaterial()}
-          </Octahedron>
+          </>
         );
       case 'icosahedron':
         return (
-          <Icosahedron args={[size]}>
+          <>
+            <icosahedronGeometry args={[size]} />
             {getMaterial()}
-          </Icosahedron>
+          </>
         );
       case 'dodecahedron':
         return (
-          <Dodecahedron args={[size]}>
+          <>
+            <dodecahedronGeometry args={[size]} />
             {getMaterial()}
-          </Dodecahedron>
+          </>
         );
       default:
         return (
-          <Sphere args={[size, 32, 32]}>
+          <>
+            <sphereGeometry args={[size, 32, 32]} />
             {getMaterial()}
-          </Sphere>
+          </>
         );
     }
   };
@@ -147,18 +152,7 @@ const HighDimensionalGeometry: React.FC<HighDimensionalGeometryProps> = ({
         </group>
       )}
       
-      {/* 几何体标签 */}
-      {(hovered || isActive) && (
-        <Text
-          position={[0, 2.5, 0]}
-          fontSize={0.3}
-          color={isActive ? '#FFD700' : '#FFFFFF'}
-          anchorX="center"
-          anchorY="middle"
-        >
-          {geometryType.toUpperCase()}
-        </Text>
-      )}
+      {/* 几何体标签 - 移除Text组件以避免drei依赖 */}
     </group>
   );
 };
@@ -227,7 +221,6 @@ const DimensionalConnection: React.FC<DimensionalConnectionProps> = ({
         color={isActive ? '#FFD700' : '#4ECDC4'}
         transparent
         opacity={isActive ? 0.8 : 0.3}
-        linewidth={isActive ? 3 : 1}
       />
     </line>
   );
@@ -280,14 +273,15 @@ const SpaceDistortion: React.FC<{ intensity: number }> = ({ intensity }) => {
           count={particleCount}
           array={positions}
           itemSize={3}
+          usage={THREE.DynamicDrawUsage}
         />
       </bufferGeometry>
       <pointsMaterial
         color="#FFFFFF"
         size={0.05}
-        transparent
+        transparent={true}
         opacity={0.6}
-        sizeAttenuation
+        sizeAttenuation={true}
       />
     </points>
   );
@@ -332,9 +326,19 @@ const HuaShenSceneContent: React.FC<{
   return (
     <>
       {/* 环境光 */}
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      <pointLight position={[0, 10, 0]} intensity={0.5} color="#FFD700" />
+      <ambientLight intensity={0.2} color="#ffffff" />
+      <directionalLight 
+        position={[10, 10, 5]} 
+        intensity={0.5} 
+        color="#ffffff"
+        castShadow
+      />
+      <pointLight 
+        position={[0, 10, 0]} 
+        intensity={0.8} 
+        color="#9333ea"
+        decay={2}
+      />
       
       {/* 空间扭曲效果 */}
       <SpaceDistortion intensity={activeGeometries.length} />
@@ -369,36 +373,23 @@ const HuaShenSceneContent: React.FC<{
         </>
       )}
       
-      {/* 中心能量核心 */}
+      {/* 中心能量核心 - 移除Text和OrbitControls组件以避免drei依赖 */}
       {activeGeometries.length >= 3 && (
         <group>
-          <Sphere args={[0.5, 32, 32]} position={[0, 0, 0]}>
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.5, 32, 32]} />
             <meshBasicMaterial
               color="#FFFFFF"
               transparent
               opacity={0.8}
             />
-          </Sphere>
-          <Text
-            position={[0, -1, 0]}
-            fontSize={0.4}
-            color="#FFD700"
-            anchorX="center"
-            anchorY="middle"
-          >
-            化神核心
-          </Text>
+          </mesh>
+          <mesh position={[0, -1, 0]}>
+            <sphereGeometry args={[0.5, 16, 16]} />
+            <meshBasicMaterial color="#FFD700" />
+          </mesh>
         </group>
       )}
-      
-      {/* 控制器 */}
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={5}
-        maxDistance={20}
-      />
     </>
   );
 };
@@ -504,6 +495,10 @@ const HuaShenScene: React.FC<HuaShenSceneProps> = ({ onGeometryClick }) => {
       <Canvas
         camera={{ position: [8, 8, 8], fov: 60 }}
         style={{ background: 'linear-gradient(to bottom, #0F0F23, #1A1A2E, #16213E)' }}
+        gl={{ antialias: true, alpha: false, preserveDrawingBuffer: false }}
+        dpr={[1, 2]}
+        performance={{ min: 0.5 }}
+        frameloop="always"
       >
         <HuaShenSceneContent
           onGeometryClick={handleGeometryClick}

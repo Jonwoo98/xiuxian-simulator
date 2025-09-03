@@ -133,108 +133,7 @@ const RealmCard: React.FC<RealmCardProps> = ({
   );
 };
 
-/**
- * 境界统计组件
- */
-interface RealmStatsProps {
-  currentRealm: RealmType;
-}
 
-const RealmStats: React.FC<RealmStatsProps> = ({ currentRealm }) => {
-  const realmState = useCurrentRealmState();
-  
-  const stats = {
-    totalNodes: realmState?.nodes?.length || 0,
-    activeNodes: realmState?.activeNodes?.length || 0,
-    completedPaths: realmState?.completedPaths?.length || 0,
-    progress: realmState?.progress || 0
-  };
-  
-  return (
-    <div className="bg-gray-800 rounded-lg p-4 border border-gray-600">
-      <h4 className="text-white font-semibold mb-3 text-center">修真统计</h4>
-      
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-300">穴位节点</span>
-          <span className="text-white">{stats.activeNodes}/{stats.totalNodes}</span>
-        </div>
-        
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-300">经络路径</span>
-          <span className="text-white">{stats.completedPaths}</span>
-        </div>
-        
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-300">境界进度</span>
-          <span className="text-white">{stats.progress.toFixed(1)}%</span>
-        </div>
-      </div>
-      
-      {/* 整体进度条 */}
-      <div className="mt-3">
-        <div className="w-full bg-gray-700 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${stats.progress}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/**
- * 境界提示组件
- */
-interface RealmTipsProps {
-  currentRealm: RealmType;
-}
-
-const RealmTips: React.FC<RealmTipsProps> = ({ currentRealm }) => {
-  const tips = {
-    lianqi: [
-      '点击穴位感知灵气',
-      '按顺序激活经络',
-      '观察能量流动'
-    ],
-    zhuji: [
-      '连接相邻穴位',
-      '形成经络回路',
-      '稳固根基建设'
-    ],
-    jindan: [
-      '体验3D经络网络',
-      '观察金丹凝聚',
-      '感受立体能量流'
-    ],
-    yuanying: [
-      '观察生命演化',
-      '理解复杂系统',
-      '体验元婴诞生'
-    ],
-    huashen: [
-      '超越三维限制',
-      '感受高维几何',
-      '体验神识化形'
-    ]
-  };
-  
-  return (
-    <div className="bg-gray-800 rounded-lg p-4 border border-gray-600">
-      <h4 className="text-white font-semibold mb-3 text-center">修真要诀</h4>
-      
-      <ul className="space-y-2">
-        {tips[currentRealm].map((tip, index) => (
-          <li key={index} className="text-sm text-gray-300 flex items-start">
-            <span className="text-yellow-400 mr-2">•</span>
-            {tip}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
 
 /**
  * 主要的境界导航组件
@@ -285,23 +184,7 @@ const RealmNavigation: React.FC<RealmNavigationProps> = ({
         ))}
       </div>
       
-      {/* 境界统计 */}
-      <RealmStats currentRealm={currentRealm} />
-      
-      {/* 修真提示 */}
-      <RealmTips currentRealm={currentRealm} />
-      
-      {/* 境界说明 */}
-      <div className="bg-gradient-to-r from-indigo-900 to-purple-900 rounded-lg p-4 border border-indigo-600">
-        <h4 className="text-white font-semibold mb-2 text-center">境界感悟</h4>
-        <p className="text-sm text-indigo-100 text-center leading-relaxed">
-          {currentRealm === 'lianqi' && '练气如种子萌芽，感知天地灵气，开启修真之门。'}
-          {currentRealm === 'zhuji' && '筑基如建高楼，稳固根基，经络贯通成环。'}
-          {currentRealm === 'jindan' && '金丹如明珠，凝聚精气神，三维网络立体运行。'}
-          {currentRealm === 'yuanying' && '元婴如新生，生命演化，复杂系统自组织。'}
-          {currentRealm === 'huashen' && '化神如蝶变，超越形体，高维空间自由遨游。'}
-        </p>
-      </div>
+
     </div>
   );
 };

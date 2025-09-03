@@ -12,3 +12,15 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* 隐藏滚动条但保持滚动功能 */
+.scrollbar-hide {
+  /* Firefox */
+  scrollbar-width: none;
+  /* Safari and Chrome */
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

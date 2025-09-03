@@ -76,11 +76,21 @@ export const useAppStore = create<AppStore>()(devtools(
     },
 
     /**
-     * 激活指定节点
+     * 激活节点
      * @param nodeId 节点ID
      */
     activateNode: (nodeId: string) => {
       set((state) => {
+        // 检查节点是否已经激活，防止重复激活
+        const targetNode = state.realmState.nodes.find(node => node.id === nodeId);
+        if (!targetNode || state.realmState.activeNodes.includes(nodeId)) {
+          console.log(`节点 ${nodeId} 已经激活或不存在，跳过激活`);
+          return state; // 返回原状态，不做任何修改
+        }
+
+        // 更新activeNodes数组
+        const updatedActiveNodes = [...state.realmState.activeNodes, nodeId];
+        
         const updatedNodes = state.realmState.nodes.map(node => {
           if (node.id === nodeId) {
             return {
@@ -94,16 +104,23 @@ export const useAppStore = create<AppStore>()(devtools(
 
         // 检查是否有路径需要激活
         const updatedPaths = state.realmState.paths.map(path => {
-          const nodeIndex = path.nodes.indexOf(nodeId);
+          const nodeIndex = path.nodes?.indexOf(nodeId) ?? -1;
           if (nodeIndex !== -1) {
             return {
               ...path,
               isActive: true,
-              progress: Math.min(1, (nodeIndex + 1) / path.nodes.length)
+              progress: Math.min(1, (nodeIndex + 1) / (path.nodes?.length || 1))
             };
           }
           return path;
         });
+
+        // 计算总体进度
+        const totalNodes = state.realmState.nodes.length;
+        const activatedNodes = updatedActiveNodes.length;
+        const newProgress = totalNodes > 0 ? (activatedNodes / totalNodes) * 100 : 0;
+
+        console.log(`成功激活节点 ${nodeId}，当前步骤: ${state.realmState.currentStep + 1}，进度: ${newProgress.toFixed(1)}%`);
 
         return {
           ...state,
@@ -111,6 +128,8 @@ export const useAppStore = create<AppStore>()(devtools(
             ...state.realmState,
             nodes: updatedNodes,
             paths: updatedPaths,
+            activeNodes: updatedActiveNodes,
+            progress: newProgress,
             currentStep: state.realmState.currentStep + 1
           }
         };
@@ -141,7 +160,12 @@ export const useAppStore = create<AppStore>()(devtools(
             nodes: resetNodes,
             paths: resetPaths,
             currentStep: 0,
-            isAnimating: false
+            isAnimating: false,
+            // 重置所有相关状态
+            activeNodes: [],
+            progress: 0,
+            completedPaths: [],
+            animationProgress: 0
           }
         };
       }, false, 'resetProgress');
@@ -237,7 +261,12 @@ export const useAppStore = create<AppStore>()(devtools(
           paths: realmData.paths,
           totalSteps: realmData.nodes.length,
           currentStep: 0,
-          isAnimating: false
+          isAnimating: false,
+          // 重置所有状态，确保每个境界都是全新开始
+          activeNodes: [],
+          progress: 0,
+          completedPaths: [],
+          animationProgress: 0
         }
       }), false, 'initializeRealm');
     }

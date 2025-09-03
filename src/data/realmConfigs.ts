@@ -38,7 +38,7 @@ export const realmConfigs: Record<RealmType, RealmConfig> = {
   jindan: {
     id: 'jindan',
     name: '金丹期',
-    description: '凝聚金丹，三维经络网络，复杂运行',
+    description: '突破二维限制，在丹田中凝聚金丹，形成三维立体的经络网络系统。',
     complexityLevel: 3,
     visualizationType: '3d'
   },
@@ -140,30 +140,96 @@ export const lianqiConfig: LianQiConfig = {
  */
 export const zhujiConfig: ZhuJiConfig = {
   nodes: [
-    // 任脉
-    { id: 'baihui', name: '百会', position: [400, 100], x: 400, y: 100, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    { id: 'yintang', name: '印堂', position: [400, 150], x: 400, y: 150, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    { id: 'tanzhong', name: '膻中', position: [400, 250], x: 400, y: 250, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    { id: 'qihai', name: '气海', position: [400, 350], x: 400, y: 350, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    { id: 'huiyin', name: '会阴', position: [400, 450], x: 400, y: 450, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    // 督脉
-    { id: 'mingmen', name: '命门', position: [500, 350], x: 500, y: 350, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    { id: 'jiaji', name: '夹脊', position: [500, 250], x: 500, y: 250, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
-    { id: 'dazhui', name: '大椎', position: [500, 150], x: 500, y: 150, size: 1, type: 'acupoint', isActive: false, isCompleted: false }
+    // 任脉（前中线，范围扩大）
+    { id: 'baihui', name: '百会', position: [400, 80], x: 400, y: 80, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'yintang', name: '印堂', position: [400, 140], x: 400, y: 140, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'tiantu', name: '天突', position: [400, 200], x: 400, y: 200, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'tanzhong', name: '膻中', position: [400, 260], x: 400, y: 260, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'zhongwan', name: '中脘', position: [400, 300], x: 400, y: 300, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'qihai', name: '气海', position: [400, 360], x: 400, y: 360, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'guanyuan', name: '关元', position: [400, 410], x: 400, y: 410, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'huiyin', name: '会阴', position: [400, 520], x: 400, y: 520, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    // 督脉（后中线，范围扩大）
+    { id: 'dazhui', name: '大椎', position: [540, 140], x: 540, y: 140, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'jiaji', name: '夹脊', position: [540, 260], x: 540, y: 260, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'mingmen', name: '命门', position: [540, 360], x: 540, y: 360, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    // 左右侧经（扩大至更外侧，渐疏）
+    { id: 'jianjing_left', name: '肩井(左)', position: [260, 180], x: 260, y: 180, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'feishu_left', name: '肺俞(左)', position: [260, 220], x: 260, y: 220, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'xinshu_left', name: '心俞(左)', position: [260, 260], x: 260, y: 260, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'ganshu_left', name: '肝俞(左)', position: [260, 300], x: 260, y: 300, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'shenshu_left', name: '肾俞(左)', position: [260, 340], x: 260, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'huantiao_left', name: '环跳(左)', position: [300, 480], x: 300, y: 480, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    { id: 'jianjing_right', name: '肩井(右)', position: [540, 180], x: 540, y: 180, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'feishu_right', name: '肺俞(右)', position: [540, 220], x: 540, y: 220, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'xinshu_right', name: '心俞(右)', position: [540, 260], x: 540, y: 260, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'ganshu_right', name: '肝俞(右)', position: [540, 300], x: 540, y: 300, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'shenshu_right', name: '肾俞(右)', position: [540, 340], x: 540, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'huantiao_right', name: '环跳(右)', position: [500, 480], x: 500, y: 480, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    // 腹侧（横向连接的锚点，位置外扩）
+    { id: 'tianshu_left', name: '天枢(左)', position: [340, 340], x: 340, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'tianshu_right', name: '天枢(右)', position: [460, 340], x: 460, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    // 渐疏过渡层（胸/腹两侧的过渡点）
+    { id: 'mid_left_chest', name: '胸侧(左)', position: [320, 260], x: 320, y: 260, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'mid_right_chest', name: '胸侧(右)', position: [480, 260], x: 480, y: 260, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'mid_left_abdomen', name: '腹侧(左)', position: [320, 340], x: 320, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'mid_right_abdomen', name: '腹侧(右)', position: [480, 340], x: 480, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    // 网心（胸腹致密网格，中心更密集）
+    { id: 'center_c1', name: '网心-上左', position: [380, 280], x: 380, y: 280, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_c2', name: '网心-上中', position: [400, 280], x: 400, y: 280, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_c3', name: '网心-上右', position: [420, 280], x: 420, y: 280, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    { id: 'center_m1', name: '网心-中左', position: [370, 300], x: 370, y: 300, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_m2', name: '网心-中中', position: [400, 300], x: 400, y: 300, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_m3', name: '网心-中右', position: [430, 300], x: 430, y: 300, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    { id: 'center_m4', name: '网心-下左', position: [370, 320], x: 370, y: 320, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_m5', name: '网心-下中', position: [400, 320], x: 400, y: 320, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_m6', name: '网心-下右', position: [430, 320], x: 430, y: 320, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+
+    { id: 'center_b1', name: '网心-腹左', position: [380, 340], x: 380, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_b2', name: '网心-腹中', position: [400, 340], x: 400, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false },
+    { id: 'center_b3', name: '网心-腹右', position: [420, 340], x: 420, y: 340, size: 1, type: 'acupoint', isActive: false, isCompleted: false }
   ],
   paths: [
-    {
-      id: 'ren_meridian',
-      nodes: ['baihui', 'yintang', 'tanzhong', 'qihai', 'huiyin'],
-      isActive: false,
-      progress: 0
-    },
-    {
-      id: 'du_meridian',
-      nodes: ['huiyin', 'mingmen', 'jiaji', 'dazhui', 'baihui'],
-      isActive: false,
-      progress: 0
-    }
+    // 前中线（任脉）
+    { id: 'ren_meridian', nodes: ['baihui', 'yintang', 'tiantu', 'tanzhong', 'zhongwan', 'qihai', 'guanyuan', 'huiyin'], isActive: false, progress: 0 },
+
+    // 后中线（督脉）
+    { id: 'du_meridian', nodes: ['huiyin', 'mingmen', 'jiaji', 'dazhui', 'baihui'], isActive: false, progress: 0 },
+
+    // 左右侧经（由上至下，外侧更疏）
+    { id: 'left_side_meridian', nodes: ['jianjing_left', 'feishu_left', 'xinshu_left', 'ganshu_left', 'shenshu_left', 'huantiao_left'], isActive: false, progress: 0 },
+    { id: 'right_side_meridian', nodes: ['jianjing_right', 'feishu_right', 'xinshu_right', 'ganshu_right', 'shenshu_right', 'huantiao_right'], isActive: false, progress: 0 },
+
+    // 原有横向连结（保持）
+    { id: 'shoulder_link', nodes: ['jianjing_left', 'tiantu', 'jianjing_right'], isActive: false, progress: 0 },
+    { id: 'chest_link', nodes: ['feishu_left', 'tanzhong', 'feishu_right'], isActive: false, progress: 0 },
+    { id: 'heart_link', nodes: ['xinshu_left', 'zhongwan', 'xinshu_right'], isActive: false, progress: 0 },
+    { id: 'stomach_link', nodes: ['tianshu_left', 'qihai', 'tianshu_right'], isActive: false, progress: 0 },
+    { id: 'pelvis_link', nodes: ['huantiao_left', 'guanyuan', 'huantiao_right'], isActive: false, progress: 0 },
+
+    // 渐疏过渡层桥接（加宽区域连接）
+    { id: 'chest_bridge_mid', nodes: ['mid_left_chest', 'tanzhong', 'mid_right_chest'], isActive: false, progress: 0 },
+    { id: 'abdomen_bridge_mid', nodes: ['mid_left_abdomen', 'qihai', 'mid_right_abdomen'], isActive: false, progress: 0 },
+    { id: 'tianshu_bridge', nodes: ['tianshu_left', 'center_b2', 'tianshu_right'], isActive: false, progress: 0 },
+
+    // 网心致密网格（行）
+    { id: 'center_row_280', nodes: ['center_c1', 'center_c2', 'center_c3'], isActive: false, progress: 0 },
+    { id: 'center_row_300', nodes: ['center_m1', 'center_m2', 'center_m3'], isActive: false, progress: 0 },
+    { id: 'center_row_320', nodes: ['center_m4', 'center_m5', 'center_m6'], isActive: false, progress: 0 },
+    { id: 'center_row_340', nodes: ['center_b1', 'center_b2', 'center_b3'], isActive: false, progress: 0 },
+
+    // 网心致密网格（列）
+    { id: 'center_col_380', nodes: ['center_c1', 'center_m1', 'center_m4', 'center_b1'], isActive: false, progress: 0 },
+    { id: 'center_col_400', nodes: ['center_c2', 'center_m2', 'center_m5', 'center_b2'], isActive: false, progress: 0 },
+    { id: 'center_col_420', nodes: ['center_c3', 'center_m3', 'center_m6', 'center_b3'], isActive: false, progress: 0 }
   ]
 };
 
@@ -286,9 +352,17 @@ export function getRealmInitialData(realm: RealmType): { nodes: AcupointNode[]; 
           y: node.position[1],
           z: 0,
           size: 1,
-          type: 'acupoint'
+          type: 'acupoint',
+          // 确保每次都是全新的初始状态
+          isActive: false,
+          isCompleted: false
         })),
-        paths: lianqiConfig.paths
+        paths: lianqiConfig.paths.map(path => ({
+          ...path,
+          // 确保每次都是全新的初始状态
+          isActive: false,
+          progress: 0
+        }))
       };
     case 'zhuji':
       return {
@@ -299,14 +373,32 @@ export function getRealmInitialData(realm: RealmType): { nodes: AcupointNode[]; 
           y: node.position[1],
           z: 0,
           size: 1,
-          type: 'acupoint'
+          type: 'acupoint',
+          // 确保每次都是全新的初始状态
+          isActive: false,
+          isCompleted: false
         })),
-        paths: zhujiConfig.paths
+        paths: zhujiConfig.paths.map(path => ({
+          ...path,
+          // 确保每次都是全新的初始状态
+          isActive: false,
+          progress: 0
+        }))
       };
     case 'jindan':
       return {
-        nodes: jindanConfig.nodes,
-        paths: jindanConfig.paths
+        nodes: jindanConfig.nodes.map(node => ({
+          ...node,
+          // 确保每次都是全新的初始状态
+          isActive: false,
+          isCompleted: false
+        })),
+        paths: jindanConfig.paths.map(path => ({
+          ...path,
+          // 确保每次都是全新的初始状态
+          isActive: false,
+          progress: 0
+        }))
       };
     case 'yuanying':
       // 元婴期使用网格，转换为节点格式

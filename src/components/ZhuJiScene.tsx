@@ -6,14 +6,14 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAppStore, useCurrentRealmState, useAnimationState } from '../store/useAppStore';
-import { getRealmConfig } from '../data/realmConfigs';
-import type { AcupointNode2D, ZhuJiSceneProps } from '../types';
+import { getRealmConfig, getRealmInitialData } from '../data/realmConfigs';
+import type { AcupointNode, ZhuJiSceneProps } from '../types';
 
 /**
  * 筑基期穴位节点组件（增强版）
  */
 interface ZhuJiAcupointProps {
-  node: AcupointNode2D;
+  node: AcupointNode;
   isActive: boolean;
   isAnimating: boolean;
   connectionLevel: number; // 连接层级
@@ -91,8 +91,8 @@ const ZhuJiAcupoint: React.FC<ZhuJiAcupointProps> = ({
     <div
       className="absolute cursor-pointer transition-all duration-300 rounded-full border-2 hover:border-opacity-80"
       style={{
-        left: `${node.x}%`,
-        top: `${node.y}%`,
+        left: `${(node.x / 800) * 100}%`,
+        top: `${(node.y / 600) * 100}%`,
         transform: 'translate(-50%, -50%)',
         ...getNodeStyle(),
         zIndex: isActive ? 20 : 10
@@ -132,11 +132,53 @@ const ZhuJiAcupoint: React.FC<ZhuJiAcupointProps> = ({
 };
 
 /**
+ * 筑基期金色连接线组件
+ */
+interface ZhuJiGoldenConnectionProps {
+  start: AcupointNode;
+  end: AcupointNode;
+}
+
+const ZhuJiGoldenConnection: React.FC<ZhuJiGoldenConnectionProps> = ({ start, end }) => {
+  // 将像素坐标转换为百分比坐标（假设容器为800x600）
+  const containerWidth = 800;
+  const containerHeight = 600;
+  
+  const startXPercent = (start.x / containerWidth) * 100;
+  const startYPercent = (start.y / containerHeight) * 100;
+  const endXPercent = (end.x / containerWidth) * 100;
+  const endYPercent = (end.y / containerHeight) * 100;
+  
+  const deltaX = endXPercent - startXPercent;
+  const deltaY = endYPercent - startYPercent;
+  const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+  
+  return (
+    <div
+      className="absolute origin-left"
+      style={{
+        left: `${startXPercent}%`,
+        top: `${startYPercent}%`,
+        width: `${length}%`,
+        height: '3px',
+        background: 'linear-gradient(90deg, #fbbf24, #f59e0b, #d97706)',
+        transform: `rotate(${angle}deg)`,
+        transformOrigin: '0 50%',
+        boxShadow: '0 0 12px #fbbf24, 0 0 24px #f59e0b',
+        zIndex: 15,
+        opacity: 0.9
+      }}
+    />
+  );
+};
+
+/**
  * 筑基期经络连接组件（增强版）
  */
 interface ZhuJiMeridianProps {
-  start: AcupointNode2D;
-  end: AcupointNode2D;
+  start: AcupointNode;
+  end: AcupointNode;
   isActive: boolean;
   isPrimary: boolean; // 是否为主经络
   animationProgress: number;
@@ -153,19 +195,23 @@ const ZhuJiMeridian: React.FC<ZhuJiMeridianProps> = ({
 }) => {
   // 计算连接线的位置和角度
   const lineStyle = useMemo(() => {
-    const startX = start.x;
-    const startY = start.y;
-    const endX = end.x;
-    const endY = end.y;
+    // 将像素坐标转换为百分比坐标（假设容器为800x600）
+    const containerWidth = 800;
+    const containerHeight = 600;
     
-    const deltaX = endX - startX;
-    const deltaY = endY - startY;
+    const startXPercent = (start.x / containerWidth) * 100;
+    const startYPercent = (start.y / containerHeight) * 100;
+    const endXPercent = (end.x / containerWidth) * 100;
+    const endYPercent = (end.y / containerHeight) * 100;
+    
+    const deltaX = endXPercent - startXPercent;
+    const deltaY = endYPercent - startYPercent;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
     
     return {
-      left: `${startX}%`,
-      top: `${startY}%`,
+      left: `${startXPercent}%`,
+      top: `${startYPercent}%`,
       width: `${distance}%`,
       transform: `rotate(${angle}deg)`,
       transformOrigin: '0 50%'
@@ -255,7 +301,8 @@ interface EnergyFieldProps {
 }
 
 const EnergyField: React.FC<EnergyFieldProps> = ({ activeNodes, totalNodes }) => {
-  const intensity = activeNodes.length / totalNodes;
+  const intensity = totalNodes > 0 && activeNodes.length > 0 ? Math.min(activeNodes.length / totalNodes, 1) : 0;
+  const safeIntensity = isNaN(intensity) ? 0 : intensity;
   
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -263,23 +310,23 @@ const EnergyField: React.FC<EnergyFieldProps> = ({ activeNodes, totalNodes }) =>
       <div 
         className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-purple-500/10 to-transparent"
         style={{
-          opacity: intensity,
-          animation: `pulse ${3 - intensity * 2}s ease-in-out infinite`
+          opacity: safeIntensity,
+          animation: `pulse ${Math.max(1, 3 - safeIntensity * 2)}s ease-in-out infinite`
         }}
       />
       
       {/* 高级能量场 */}
-      {intensity > 0.5 && (
+      {safeIntensity > 0.5 && (
         <div 
           className="absolute inset-0 bg-gradient-radial from-yellow-400/15 via-orange-500/10 to-transparent"
           style={{
-            animation: `spin ${10 - intensity * 5}s linear infinite`
+            animation: `spin ${Math.max(1, 10 - safeIntensity * 5)}s linear infinite`
           }}
         />
       )}
       
       {/* 筑基完成能量场 */}
-      {intensity > 0.8 && (
+      {safeIntensity > 0.8 && (
         <div className="absolute inset-0 bg-gradient-radial from-gold-400/20 via-amber-500/15 to-transparent animate-pulse" />
       )}
     </div>
@@ -295,16 +342,45 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
   const { activateNode } = useAppStore();
   
   // 获取筑基期配置
-  const config = getRealmConfig('zhuji');
+  const config = getRealmInitialData('zhuji');
   
   // 能量流动状态
   const [energyFlow, setEnergyFlow] = useState(0);
   
   // 处理节点点击
   const handleNodeClick = useCallback((nodeId: string) => {
+    console.log(`尝试激活节点: ${nodeId}`);
+    console.log('当前境界状态:', {
+      currentRealm: realmState?.currentRealm,
+      activeNodes: realmState?.activeNodes,
+      totalNodes: config?.nodes?.length || 0,
+      progress: realmState?.progress
+    });
+    
+    // 检查节点是否已经激活
+    if (realmState?.activeNodes?.includes(nodeId)) {
+      console.log(`节点 ${nodeId} 已经激活`);
+      return;
+    }
+    
+    // 检查是否按顺序激活
+    const currentActiveCount = realmState?.activeNodes?.length || 0;
+    const targetNodeIndex = (config?.nodes || []).findIndex(node => node.id === nodeId);
+    
+    console.log(`当前激活节点数: ${currentActiveCount}, 目标节点索引: ${targetNodeIndex}`);
+    
+    // 只允许激活下一个应该激活的节点且节点未被激活
+    if (targetNodeIndex !== currentActiveCount) {
+      console.log(`节点 ${nodeId} 不能激活，当前应该激活第 ${currentActiveCount + 1} 个节点`);
+      return;
+    }
+    
+    console.log(`激活节点: ${nodeId}`);
     activateNode(nodeId);
     onNodeClick?.(nodeId);
-  }, [activateNode, onNodeClick]);
+  }, [activateNode, onNodeClick, realmState?.activeNodes, config?.nodes]);
+
+  // 移除重复的handleNodeClick函数，使用上面的useCallback版本
 
   // 能量流动动画
   useEffect(() => {
@@ -317,7 +393,7 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
 
   // 自动动画效果
   useEffect(() => {
-    if (isAnimating && currentStep < config.nodes.length) {
+    if (isAnimating && config?.nodes && currentStep < config.nodes.length) {
       const timer = setTimeout(() => {
         const nextNode = config.nodes[currentStep];
         if (nextNode) {
@@ -331,14 +407,54 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
 
   // 计算节点连接层级
   const getConnectionLevel = useCallback((nodeId: string) => {
-    const activeIndex = realmState.activeNodes.indexOf(nodeId);
+    const activeIndex = (realmState?.activeNodes || []).indexOf(nodeId);
     return activeIndex >= 0 ? Math.floor(activeIndex / 3) : 0;
-  }, [realmState.activeNodes]);
+  }, [realmState?.activeNodes]);
+
+  // 计算激活的节点
+  const activeNodes = realmState?.activeNodes || [];
+  const currentActiveCount = activeNodes.filter(Boolean).length;
+  const totalNodes = config?.nodes?.length || 0;
+  // 修复自动弹窗问题：只有当总节点数大于0且所有节点都激活时才认为完成
+  const allNodesActivated = totalNodes > 0 && currentActiveCount === totalNodes && currentActiveCount > 0;
+  
+  // 调试信息
+  console.log('筑基期渲染状态:', {
+    currentActiveCount,
+    totalNodes,
+    allNodesActivated,
+    activeNodes: realmState?.activeNodes,
+    progress: realmState?.progress,
+    currentRealm: realmState?.currentRealm
+  });
+  
+  // 调试日志
+  console.log('筑基期状态调试:', {
+    activeNodes,
+    currentActiveCount,
+    totalNodes,
+    allNodesActivated,
+    configNodes: config?.nodes?.map(n => ({ id: n.id, name: n.name, x: n.x, y: n.y }))
+  });
+  
+  // 延迟显示完成弹窗，让用户先看到经脉图效果
+  const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
+  
+  useEffect(() => {
+    if (allNodesActivated && !showCompletionPrompt) {
+      // 延迟3秒显示完成弹窗，让用户先欣赏经脉图
+      const timer = setTimeout(() => {
+        setShowCompletionPrompt(true);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [allNodesActivated, showCompletionPrompt]);
 
   // 生成经络连接
   const connections = useMemo(() => {
-    const activeNodes = config.nodes.filter(node => 
-      realmState.activeNodes.includes(node.id)
+    const activeNodes = (config?.nodes || []).filter(node => 
+      (realmState?.activeNodes || []).includes(node.id)
     );
     
     const connections = [];
@@ -365,8 +481,20 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
       }
     }
     
+    // 调试经络连接
+    console.log('经络连接调试:', {
+      activeNodesCount: activeNodes.length,
+      connectionsCount: connections.length,
+      activeNodes: activeNodes.map(n => ({ id: n.id, name: n.name, x: n.x, y: n.y })),
+      connections: connections.map(c => ({
+        start: { id: c.start.id, x: c.start.x, y: c.start.y },
+        end: { id: c.end.id, x: c.end.x, y: c.end.y },
+        isPrimary: c.isPrimary
+      }))
+    });
+    
     return connections;
-  }, [config.nodes, realmState.activeNodes]);
+  }, [config?.nodes, realmState?.activeNodes]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -375,8 +503,8 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
       
       {/* 能量场效果 */}
       <EnergyField 
-        activeNodes={realmState.activeNodes} 
-        totalNodes={config.nodes.length} 
+        activeNodes={realmState?.activeNodes || []} 
+        totalNodes={config?.nodes?.length || 0} 
       />
       
       {/* 人体轮廓（更详细） */}
@@ -390,6 +518,28 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
         </div>
       </div>
       
+      {/* 金色连接线 - 连接已激活的相邻穴位 */}
+      <div className="absolute inset-0">
+        {(config?.nodes || []).map((node, index) => {
+          if (index === 0) return null; // 第一个节点没有前一个节点
+          
+          const prevNode = (config?.nodes || [])[index - 1];
+          const currentNodeActive = realmState?.activeNodes?.includes(node.id) || false;
+          const prevNodeActive = realmState?.activeNodes?.includes(prevNode.id) || false;
+          
+          // 只有当前节点和前一个节点都激活时才显示金色连线
+          if (!currentNodeActive || !prevNodeActive) return null;
+          
+          return (
+            <ZhuJiGoldenConnection
+              key={`golden-${prevNode.id}-${node.id}`}
+              start={prevNode}
+              end={node}
+            />
+          );
+        })}
+      </div>
+
       {/* 经络连接线 */}
       <div className="absolute inset-0">
         {connections.map((connection, index) => (
@@ -407,11 +557,11 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
       
       {/* 穴位节点 */}
       <div className="absolute inset-0">
-        {config.nodes.map((node) => (
+        {(config?.nodes || []).map((node) => (
           <ZhuJiAcupoint
             key={node.id}
             node={node}
-            isActive={realmState.activeNodes.includes(node.id)}
+            isActive={(realmState?.activeNodes || []).includes(node.id)}
             isAnimating={isAnimating}
             connectionLevel={getConnectionLevel(node.id)}
             onClick={handleNodeClick}
@@ -420,16 +570,16 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
       </div>
       
       {/* 境界信息覆盖层 */}
-      <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white p-4 rounded-lg border border-purple-500/40 max-w-xs">
+      <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white p-4 rounded-lg border border-purple-500/40 max-w-xs z-20">
         <h3 className="text-lg font-bold mb-2 text-purple-300">筑基期</h3>
         <p className="text-sm text-gray-300 mb-3">
           构筑灵力根基，形成稳固经络网络
         </p>
         <div className="text-xs text-gray-400 space-y-1">
-          <div>已激活穴位: {realmState.activeNodes.length}/{config.nodes.length}</div>
-          <div>修真进度: {realmState.progress.toFixed(1)}%</div>
-          <div>经络层级: {Math.max(...realmState.activeNodes.map(getConnectionLevel)) + 1}</div>
-          <div>能量强度: {((realmState.activeNodes.length / config.nodes.length) * 100).toFixed(0)}%</div>
+          <div>已激活穴位: {currentActiveCount}/{totalNodes}</div>
+          <div>修真进度: {totalNodes > 0 ? ((currentActiveCount / totalNodes) * 100).toFixed(1) : 0.0}%</div>
+          <div>经络层级: {currentActiveCount > 0 ? Math.max(...(realmState?.activeNodes || []).map(getConnectionLevel)) + 1 : 0}</div>
+          <div>能量强度: {totalNodes > 0 ? ((currentActiveCount / totalNodes) * 100).toFixed(0) : 0}%</div>
         </div>
       </div>
       
@@ -444,13 +594,47 @@ const ZhuJiScene: React.FC<ZhuJiSceneProps> = ({ onNodeClick }) => {
         </p>
       </div>
       
-      {/* 筑基完成提示 */}
-      {realmState.progress >= 100 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-gradient-to-r from-purple-600 to-amber-600 text-white p-8 rounded-lg border border-purple-500 text-center">
-            <h2 className="text-2xl font-bold mb-4">🏗️ 筑基期圆满</h2>
-            <p className="text-lg mb-4">恭喜！您已成功构筑灵力根基</p>
-            <p className="text-sm text-purple-200">经络网络已成型，可进入金丹期</p>
+      {/* 筑基期经脉图 - 当所有穴位激活后显示 */}
+      {allNodesActivated && (
+        <div className="absolute inset-0 pointer-events-none z-30">
+          {/* 整体能量光晕 */}
+          <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-amber-500/10 to-transparent animate-pulse" />
+          
+          {/* 中心能量核心 */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-20 h-20 bg-purple-400/40 rounded-full animate-spin" />
+            <div className="absolute inset-2 bg-amber-300/50 rounded-full animate-ping" />
+          </div>
+          
+          {/* 经络网络光效 */}
+          <div className="absolute inset-0">
+            {(config?.nodes || []).map((node, index) => (
+              <div
+                key={`energy-${node.id}`}
+                className="absolute w-4 h-4 bg-amber-400/60 rounded-full animate-pulse"
+                style={{
+                  left: `${(node.x / 800) * 100}%`,
+                  top: `${(node.y / 600) * 100}%`,
+                  transform: 'translate(-50%, -50%)',
+                  animationDelay: `${index * 0.2}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 筑基完成提示 - 延迟显示 */}
+      {showCompletionPrompt && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+          <div className="bg-gradient-to-br from-purple-600 to-amber-600 p-8 rounded-2xl shadow-2xl text-center max-w-md mx-4">
+            <div className="text-6xl mb-4">🏗️</div>
+            <h3 className="text-2xl font-bold text-white mb-4">筑基期圆满！</h3>
+            <p className="text-lg text-purple-100 mb-6">
+              恭喜！您已成功构筑灵力根基<br />
+              经络网络已成型，灵力循环稳固，<br />
+              可以进入下一个修炼阶段了！
+            </p>
           </div>
         </div>
       )}
